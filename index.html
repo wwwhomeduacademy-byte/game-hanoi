@@ -12,12 +12,30 @@
     .pill{padding:10px 12px;border-radius:999px;border:1px solid #eee;background:#fafafa}
     .wrap{max-width:980px;margin:0 auto;padding:18px}
     .board{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
-    .rod{height:420px;background:#fff;border:1px solid #e7e7ef;border-radius:16px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;padding:16px 12px 18px;box-shadow:0 8px 24px rgba(0,0,0,.06);cursor:pointer}
-    .rod::before{content:"";position:absolute;left:50%;transform:translateX(-50%);width:10px;height:300px;bottom:60px;border-radius:10px;background:#d9d9e6}
-    .base{position:absolute;left:16px;right:16px;bottom:18px;height:14px;border-radius:12px;background:#c9c9d8}
-    .disk{height:26px;border-radius:10px;margin:4px 0;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 10px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:12px;user-select:none}
+    .rod{
+      height:420px;background:#fff;border:1px solid #e7e7ef;border-radius:16px;
+      display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
+      position:relative;padding:16px 12px 18px;
+      box-shadow:0 8px 24px rgba(0,0,0,.06);
+      cursor:pointer;
+    }
+    .rod::before{
+      content:""; position:absolute; left:50%; transform:translateX(-50%);
+      width:10px; height:300px; bottom:60px; border-radius:10px; background:#d9d9e6;
+    }
+    .base{
+      position:absolute; left:16px; right:16px; bottom:18px;
+      height:14px; border-radius:12px; background:#c9c9d8;
+    }
+    .disk{
+      height:26px;border-radius:10px;margin:4px 0;
+      border:1px solid rgba(0,0,0,.08);
+      box-shadow:0 2px 10px rgba(0,0,0,.08);
+      display:flex;align-items:center;justify-content:center;
+      font-size:12px; user-select:none;
+    }
     .rod.selected{outline:3px solid #5b8cff}
-    .hint{margin-top:10px;opacity:.8}
+    .hint{margin-top:10px;opacity:.85;line-height:1.35}
     .win{padding:10px 12px;border-radius:12px;background:#eaffea;border:1px solid #bfe8bf;margin-top:12px;display:none}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     input[type="number"]{width:90px;padding:10px 12px;border-radius:10px;border:1px solid #ddd}
@@ -40,7 +58,14 @@
   </header>
 
   <div class="wrap">
-    <div class="hint">Kullanım: Bir çubuğa tıkla (seç), sonra hedef çubuğa tıkla (bırak).</div>
+    <div class="hint">
+      <b>Kurallar:</b><br/>
+      • Her hamlede sadece <b>1 disk</b> taşınır.<br/>
+      • <b>Büyük disk</b>, <b>küçük diskin</b> üstüne gelemez.<br/>
+      • Aldığın diski dışarıda tutamazsın: mutlaka bir sütuna bırakmalısın.<br/>
+      <i>Kullanım:</i> Bir sütuna tıkla (seç), sonra hedef sütuna tıkla (bırak). Aynı sütuna tıklarsan seçim iptal olur.
+    </div>
+
     <div class="win" id="winBox">🎉 Tebrikler! Oyunu bitirdin.</div>
 
     <div class="board">
@@ -62,6 +87,7 @@
   const applyBtn = document.getElementById("applyBtn");
 
   let n = Number(diskCountEl.value);
+  // Her rod: alttan üste doğru dizi. Son eleman = en üst disk.
   let rods = [[], [], []];
   let selectedRod = null;
   let moves = 0;
@@ -73,38 +99,61 @@
   function minMoves(x){ return (2 ** x) - 1; }
 
   function resetGame(){
-    moves = 0; selectedRod = null;
+    moves = 0;
+    selectedRod = null;
     rods = [[], [], []];
+
+    // Başlangıç: tüm diskler 1. rod’da, altta büyük üstte küçük (dizi: [n,...,1])
     for (let size = n; size >= 1; size--) rods[0].push(size);
+
     updateUI();
   }
-  function top(i){ const r = rods[i]; return r.length ? r[r.length - 1] : null; }
-  function isLegalMove(from,to){
-    const a = top(from); if (a === null) return false;
-    const b = top(to); return (b === null) || (a < b);
+
+  function top(i){
+    const r = rods[i];
+    return r.length ? r[r.length - 1] : null;
   }
+
+  function isLegalMove(from,to){
+    const a = top(from);
+    if (a === null) return false;
+    const b = top(to);
+    return (b === null) || (a < b);
+  }
+
   function moveDisk(from,to){
     if (!isLegalMove(from,to)) return false;
     rods[to].push(rods[from].pop());
-    moves++; return true;
+    moves++;
+    return true;
   }
-  function checkWin(){ return rods[2].length === n; }
+
+  function checkWin(){
+    return rods[2].length === n;
+  }
 
   function clearRodDOM(rodEl){
     [...rodEl.querySelectorAll(".disk")].forEach(d => d.remove());
   }
+
   function renderRod(i){
     const rodEl = rodsEl[i];
     clearRodDOM(rodEl);
-    rods[i].forEach(size => {
+
+    // ✅ KRİTİK DÜZELTME:
+    // Dizimiz alttan üste: [n,...,1] (1 en üst).
+    // DOM sırası üstten alta olduğundan ekrana "üstten alta" basmak için ters basıyoruz.
+    for (let idx = rods[i].length - 1; idx >= 0; idx--) {
+      const size = rods[i][idx];
       const d = document.createElement("div");
       d.className = "disk";
       d.style.width = diskWidth(size) + "px";
       d.style.background = `hsl(${(size*42)%360} 80% 72%)`;
       d.textContent = size;
       rodEl.appendChild(d);
-    });
+    }
   }
+
   function updateUI(){
     rodsEl.forEach((el,i)=> el.classList.toggle("selected", i === selectedRod));
     rodsEl.forEach((_,i)=> renderRod(i));
@@ -113,11 +162,17 @@
     winBox.style.display = checkWin() ? "block" : "none";
   }
 
+  // Basit yardım: geçerli ilk hamleyi yapar (optimal garanti değil)
   function doOneSuggestedMove(){
     for (let from=0; from<3; from++){
       for (let to=0; to<3; to++){
         if (from===to) continue;
-        if (isLegalMove(from,to)) { moveDisk(from,to); selectedRod=null; updateUI(); return; }
+        if (isLegalMove(from,to)) {
+          moveDisk(from,to);
+          selectedRod = null;
+          updateUI();
+          return;
+        }
       }
     }
   }
@@ -126,23 +181,39 @@
     el.addEventListener("click", () => {
       const rodIndex = Number(el.dataset.rod);
 
+      // Kaynak seç
       if (selectedRod === null) {
-        if (top(rodIndex) === null) return;
-        selectedRod = rodIndex; updateUI(); return;
+        if (top(rodIndex) === null) return; // boş rod seçme
+        selectedRod = rodIndex;
+        updateUI();
+        return;
       }
 
-      const from = selectedRod, to = rodIndex;
-      if (from === to) { selectedRod = null; updateUI(); return; }
+      // Aynı rodda tekrar tık => iptal (disk dışarıda kalmaz)
+      if (selectedRod === rodIndex) {
+        selectedRod = null;
+        updateUI();
+        return;
+      }
 
-      const ok = moveDisk(from, to);
+      // Hedefe bırak
+      const ok = moveDisk(selectedRod, rodIndex);
       selectedRod = null;
-      if (!ok) el.animate([{transform:"translateY(0)"},{transform:"translateY(-6px)"},{transform:"translateY(0)"}], {duration:220});
+
+      if (!ok) {
+        el.animate(
+          [{transform:"translateY(0)"},{transform:"translateY(-6px)"},{transform:"translateY(0)"}],
+          {duration:220}
+        );
+      }
+
       updateUI();
     });
   });
 
   resetBtn.addEventListener("click", resetGame);
   autoBtn.addEventListener("click", doOneSuggestedMove);
+
   applyBtn.addEventListener("click", () => {
     const val = Number(diskCountEl.value);
     n = Math.max(3, Math.min(8, isFinite(val) ? val : 4));
