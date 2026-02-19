@@ -1,151 +1,157 @@
 <!doctype html>
-<html lang='tr'>
+<html lang="tr">
 <head>
-  <meta charset='utf-8'/>
-  <meta name='viewport' content='width=device-width,initial-scale=1'/>
-  <title>Hanoi Kulesi</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hanoi Kuleleri</title>
+  <style>
+    body{font-family:system-ui,Arial;margin:0;background:#f6f7fb;color:#111}
+    header{padding:16px 18px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:#fff;box-shadow:0 1px 8px rgba(0,0,0,.06)}
+    .btn{border:1px solid #ddd;background:#fff;border-radius:10px;padding:10px 12px;cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+    .pill{padding:10px 12px;border-radius:999px;border:1px solid #eee;background:#fafafa}
+    .wrap{max-width:980px;margin:0 auto;padding:18px}
+    .board{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+    .rod{height:420px;background:#fff;border:1px solid #e7e7ef;border-radius:16px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;padding:16px 12px 18px;box-shadow:0 8px 24px rgba(0,0,0,.06);cursor:pointer}
+    .rod::before{content:"";position:absolute;left:50%;transform:translateX(-50%);width:10px;height:300px;bottom:60px;border-radius:10px;background:#d9d9e6}
+    .base{position:absolute;left:16px;right:16px;bottom:18px;height:14px;border-radius:12px;background:#c9c9d8}
+    .disk{height:26px;border-radius:10px;margin:4px 0;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 10px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:12px;user-select:none}
+    .rod.selected{outline:3px solid #5b8cff}
+    .hint{margin-top:10px;opacity:.8}
+    .win{padding:10px 12px;border-radius:12px;background:#eaffea;border:1px solid #bfe8bf;margin-top:12px;display:none}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    input[type="number"]{width:90px;padding:10px 12px;border-radius:10px;border:1px solid #ddd}
+  </style>
 </head>
 <body>
-<iframe
-  style="width:100%;height:620px;border:0;border-radius:16px;overflow:hidden;"
-  sandbox="allow-scripts allow-forms allow-pointer-lock"
-  srcdoc="<!doctype html><html lang='tr'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width,initial-scale=1'/><title>Hanoi</title></head><body><div style='font-family:system-ui;padding:16px'>Yükleniyor...</div><script>
-  document.body.innerHTML = `
-  <style>
-  body{font-family:system-ui,Arial;margin:0;background:#f6f7fb;color:#111}
-  header{padding:16px 18px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:#fff;box-shadow:0 1px 8px rgba(0,0,0,.06)}
-  .btn{border:1px solid #ddd;background:#fff;border-radius:10px;padding:10px 12px;cursor:pointer}
-  .btn:active{transform:translateY(1px)}
-  .pill{padding:10px 12px;border-radius:999px;border:1px solid #eee;background:#fafafa}
-  .wrap{max-width:980px;margin:0 auto;padding:18px}
-  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
-  .rod{height:420px;background:#fff;border:1px solid #e7e7ef;border-radius:16px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;padding:16px 12px 18px;box-shadow:0 8px 24px rgba(0,0,0,.06);cursor:pointer}
-  .rod::before{content:'';position:absolute;left:50%;transform:translateX(-50%);width:10px;height:300px;bottom:60px;border-radius:10px;background:#d9d9e6}
-  .base{position:absolute;left:16px;right:16px;bottom:18px;height:14px;border-radius:12px;background:#c9c9d8}
-  .disk{height:26px;border-radius:10px;margin:4px 0;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 10px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:12px;user-select:none}
-  .rod.selected{outline:3px solid #5b8cff}
-  .hint{margin-top:10px;opacity:.8}
-  .win{padding:10px 12px;border-radius:12px;background:#eaffea;border:1px solid #bfe8bf;margin-top:12px;display:none}
-  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  input[type=number]{width:90px;padding:10px 12px;border-radius:10px;border:1px solid #ddd}
-  </style>
-
   <header>
-    <div class='row'>
-      <button class='btn' id='resetBtn'>Yeniden Başlat</button>
-      <button class='btn' id='autoBtn'>1 Hamle Öner</button>
-      <span class='pill' id='movesPill'>Hamle: 0</span>
-      <span class='pill' id='minPill'>Minimum: 0</span>
+    <div class="row">
+      <button class="btn" id="resetBtn">Yeniden Başlat</button>
+      <button class="btn" id="autoBtn">1 Hamle Öner</button>
+      <span class="pill" id="movesPill">Hamle: 0</span>
+      <span class="pill" id="minPill">Minimum: 0</span>
     </div>
-    <div class='row'>
-      <label class='pill'>Disk:
-        <input id='diskCount' type='number' min='3' max='8' value='4' />
+    <div class="row">
+      <label class="pill">Disk:
+        <input id="diskCount" type="number" min="3" max="8" value="4" />
       </label>
-      <button class='btn' id='applyBtn'>Uygula</button>
+      <button class="btn" id="applyBtn">Uygula</button>
     </div>
   </header>
 
-  <div class='wrap'>
-    <div class='hint'>Kullanım: Bir çubuğa tıkla (seç), sonra hedef çubuğa tıkla (bırak).</div>
-    <div class='win' id='winBox'>🎉 Tebrikler! Oyunu bitirdin.</div>
+  <div class="wrap">
+    <div class="hint">Kullanım: Bir çubuğa tıkla (seç), sonra hedef çubuğa tıkla (bırak).</div>
+    <div class="win" id="winBox">🎉 Tebrikler! Oyunu bitirdin.</div>
 
-    <div class='board'>
-      <div class='rod' data-rod='0'><div class='base'></div></div>
-      <div class='rod' data-rod='1'><div class='base'></div></div>
-      <div class='rod' data-rod='2'><div class='base'></div></div>
+    <div class="board">
+      <div class="rod" data-rod="0"><div class="base"></div></div>
+      <div class="rod" data-rod="1"><div class="base"></div></div>
+      <div class="rod" data-rod="2"><div class="base"></div></div>
     </div>
   </div>
-  `;
 
-  const rodsEl = [...document.querySelectorAll('.rod')];
-  const movesPill = document.getElementById('movesPill');
-  const minPill = document.getElementById('minPill');
-  const winBox = document.getElementById('winBox');
-  const resetBtn = document.getElementById('resetBtn');
-  const autoBtn = document.getElementById('autoBtn');
-  const diskCountEl = document.getElementById('diskCount');
-  const applyBtn = document.getElementById('applyBtn');
+<script>
+(() => {
+  const rodsEl = [...document.querySelectorAll(".rod")];
+  const movesPill = document.getElementById("movesPill");
+  const minPill = document.getElementById("minPill");
+  const winBox = document.getElementById("winBox");
+  const resetBtn = document.getElementById("resetBtn");
+  const autoBtn = document.getElementById("autoBtn");
+  const diskCountEl = document.getElementById("diskCount");
+  const applyBtn = document.getElementById("applyBtn");
 
   let n = Number(diskCountEl.value);
   let rods = [[], [], []];
   let selectedRod = null;
   let moves = 0;
 
-  function diskWidth(size){ const min=70,max=240; return min+(max-min)*(size-1)/(n-1); }
+  function diskWidth(size){
+    const min = 70, max = 240;
+    return min + (max - min) * (size - 1) / (n - 1);
+  }
   function minMoves(x){ return (2 ** x) - 1; }
 
   function resetGame(){
-    moves=0; selectedRod=null; rods=[[],[],[]];
-    for(let size=n; size>=1; size--) rods[0].push(size);
+    moves = 0; selectedRod = null;
+    rods = [[], [], []];
+    for (let size = n; size >= 1; size--) rods[0].push(size);
     updateUI();
   }
-  function top(i){ const r=rods[i]; return r.length ? r[r.length-1] : null; }
+  function top(i){ const r = rods[i]; return r.length ? r[r.length - 1] : null; }
   function isLegalMove(from,to){
-    const a=top(from); if(a===null) return false;
-    const b=top(to); return (b===null) || (a<b);
+    const a = top(from); if (a === null) return false;
+    const b = top(to); return (b === null) || (a < b);
   }
   function moveDisk(from,to){
-    if(!isLegalMove(from,to)) return false;
-    rods[to].push(rods[from].pop()); moves++; return true;
+    if (!isLegalMove(from,to)) return false;
+    rods[to].push(rods[from].pop());
+    moves++; return true;
   }
-  function checkWin(){ return rods[2].length===n; }
+  function checkWin(){ return rods[2].length === n; }
 
-  function clearRodDOM(rodEl){ [...rodEl.querySelectorAll('.disk')].forEach(d=>d.remove()); }
+  function clearRodDOM(rodEl){
+    [...rodEl.querySelectorAll(".disk")].forEach(d => d.remove());
+  }
   function renderRod(i){
-    const rodEl=rodsEl[i]; clearRodDOM(rodEl);
-    rods[i].forEach(size=>{
-      const d=document.createElement('div');
-      d.className='disk';
-      d.style.width = diskWidth(size) + 'px';
+    const rodEl = rodsEl[i];
+    clearRodDOM(rodEl);
+    rods[i].forEach(size => {
+      const d = document.createElement("div");
+      d.className = "disk";
+      d.style.width = diskWidth(size) + "px";
       d.style.background = `hsl(${(size*42)%360} 80% 72%)`;
-      d.textContent=size;
+      d.textContent = size;
       rodEl.appendChild(d);
     });
   }
   function updateUI(){
-    rodsEl.forEach((el,i)=>el.classList.toggle('selected', i===selectedRod));
-    rodsEl.forEach((_,i)=>renderRod(i));
-    movesPill.textContent = 'Hamle: ' + moves;
-    minPill.textContent = 'Minimum: ' + minMoves(n);
-    winBox.style.display = checkWin() ? 'block' : 'none';
+    rodsEl.forEach((el,i)=> el.classList.toggle("selected", i === selectedRod));
+    rodsEl.forEach((_,i)=> renderRod(i));
+    movesPill.textContent = `Hamle: ${moves}`;
+    minPill.textContent = `Minimum: ${minMoves(n)}`;
+    winBox.style.display = checkWin() ? "block" : "none";
   }
+
   function doOneSuggestedMove(){
-    for(let from=0; from<3; from++){
-      for(let to=0; to<3; to++){
-        if(from===to) continue;
-        if(isLegalMove(from,to)){ moveDisk(from,to); selectedRod=null; updateUI(); return; }
+    for (let from=0; from<3; from++){
+      for (let to=0; to<3; to++){
+        if (from===to) continue;
+        if (isLegalMove(from,to)) { moveDisk(from,to); selectedRod=null; updateUI(); return; }
       }
     }
   }
 
-  rodsEl.forEach(el=>{
-    el.addEventListener('click', ()=>{
+  rodsEl.forEach(el => {
+    el.addEventListener("click", () => {
       const rodIndex = Number(el.dataset.rod);
-      if(selectedRod===null){
-        if(top(rodIndex)===null) return;
-        selectedRod=rodIndex; updateUI(); return;
+
+      if (selectedRod === null) {
+        if (top(rodIndex) === null) return;
+        selectedRod = rodIndex; updateUI(); return;
       }
-      const from=selectedRod, to=rodIndex;
-      if(from===to){ selectedRod=null; updateUI(); return; }
-      const ok=moveDisk(from,to);
-      selectedRod=null;
-      if(!ok) el.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:220});
+
+      const from = selectedRod, to = rodIndex;
+      if (from === to) { selectedRod = null; updateUI(); return; }
+
+      const ok = moveDisk(from, to);
+      selectedRod = null;
+      if (!ok) el.animate([{transform:"translateY(0)"},{transform:"translateY(-6px)"},{transform:"translateY(0)"}], {duration:220});
       updateUI();
     });
   });
 
-  resetBtn.addEventListener('click', resetGame);
-  autoBtn.addEventListener('click', doOneSuggestedMove);
-  applyBtn.addEventListener('click', ()=>{
-    const val=Number(diskCountEl.value);
-    n = Math.max(3, Math.min(8, isFinite(val)?val:4));
-    diskCountEl.value=n;
+  resetBtn.addEventListener("click", resetGame);
+  autoBtn.addEventListener("click", doOneSuggestedMove);
+  applyBtn.addEventListener("click", () => {
+    const val = Number(diskCountEl.value);
+    n = Math.max(3, Math.min(8, isFinite(val) ? val : 4));
+    diskCountEl.value = n;
     resetGame();
   });
 
   resetGame();
-  </script></body></html>">
-</iframe>
+})();
+</script>
 </body>
 </html>
-```
